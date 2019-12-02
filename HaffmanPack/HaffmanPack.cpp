@@ -1,4 +1,11 @@
-﻿#include <stdio.h>
+﻿//TODO list
+//1) получить последовательность символов из входного файла
+//2)записать таблицу соответствий
+//3) побитно
+
+
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
@@ -229,12 +236,24 @@ bool Tree::checkGenSuc(Node*** nodesfield)
 	return counter == 2 ? true : false;
 }
 
+int getCodeLenght(int code)  //WheRe ShOuld i be? I loST mY PLAcE in this WoRLd
+{
+	int i = 0;
+	while (code<pow(2,i))
+	{
+		i++;
+	}
+	i--;
+	return i;
+}
+
 
 bool isEmpty(std::ifstream& pFile);
 
 int main()
 {
 	ifstream file("C:\\6.dvi", ios::binary);
+	ofstream fileOut("C:\\res.bin", ios::binary);
 	string* pcontent = new string;
 	string& content = *pcontent;
 	char byte;
@@ -291,6 +310,8 @@ int main()
 	cout << "Codes: " << endl;
 	for (uint16_t i = 0; i < count; i++)
 		cout << codes[i] << endl;
+	file.close();
+	fileOut.close();
 	_fgetchar();
 	return 0;
 }
