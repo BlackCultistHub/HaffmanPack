@@ -1,11 +1,9 @@
 ﻿//TODO list
-//1) получить последовательность символов из входного файла
-//2)записать таблицу соответствий
-//3) побитно
-
-
-
-
+//1) получить последовательность символов из входного файла DONE
+//2)записать таблицу соответствий DONE
+//3) побитно DONE
+//4) сделать запись заголовка [Х]в другой файл [О]в тот же файл [О]по выбору DONE
+//5) сделать декодер 
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -238,7 +236,7 @@ bool Tree::checkGenSuc(Node*** nodesfield)
 	return counter == 2 ? true : false;
 }
 
-int getCodeLenght(int code)  //WheRe ShOuld i be? I loST mY PLAcE in this WoRLd
+/*int getCodeLenght(int code)  //WheRe ShOuld i be? I loST mY PLAcE in this WoRLd
 {
 	int i = 0;
 	while (code<pow(2,i))
@@ -247,15 +245,19 @@ int getCodeLenght(int code)  //WheRe ShOuld i be? I loST mY PLAcE in this WoRLd
 	}
 	i--;
 	return i;
-}
-
+}*/
 
 bool isEmpty(std::ifstream& pFile);
+bool getBit(uint64_t code, int pointer);
+int binaryLen(uint64_t msg);
+void writeHeader(uint64_t* codewords, char* uniqueSymbs, int pairs, int zeros, std::ofstream* target);
+int writeByBit(uint64_t* codewords, char* uniqueSymbs, std::ifstream* content, std::ofstream* target);
 
 int main()
 {
 	ifstream file("C:\\6.dvi", ios::binary);
-	ofstream fileOut("C:\\res.bin", ios::binary);
+	ofstream fileOut("E:\\res.txt", ios::binary);
+	ofstream fileHeader("E:\\resH.txt", ios::binary);
 	string* pcontent = new string;
 	string& content = *pcontent;
 	char byte;
@@ -309,11 +311,20 @@ int main()
 	huff.genTree();
 	huff.deGenTree();
 	uint64_t* codes = huff.getCodes();
-	cout << "Codes: " << endl;
+	cout << "\t-------------------------------\n"<<
+		    "\t|        [Codes table]        |\n" << 
+		    "\t|_____________________________|"<< endl;
 	for (uint16_t i = 0; i < count; i++)
-		cout << codes[i] << endl;
+		printf("\t| Symbol | %4d | Code | %4d |\n", (int)USymb[i], codes[i]);
+	cout << "\t-------------------------------" << endl;
+	//call write compressed
+	int zeros = 0;
+	zeros = writeByBit(codes, USymb, &file, &fileOut);
+	//call write header
+	writeHeader(codes, USymb, count, zeros, &fileHeader);
 	file.close();
 	fileOut.close();
+	fileHeader.close();
 	_fgetchar();
 	return 0;
 }
@@ -331,3 +342,94 @@ bool isEmpty(std::ifstream& pFile)
 	}
 }
 
+bool getBit(uint64_t code, int pointer)
+{
+	//int length = 0;
+	//length = binaryLen(code) - 1;
+	uint64_t pointerBit = 0, temp = 0;
+	pointerBit = pow(2, pointer);
+	temp = code ^ pointerBit;
+	if (temp < code)
+		return true;
+	else
+		return false;
+}
+
+int binaryLen(uint64_t msg)
+{
+	int i;
+	for (i = 0; msg >= pow(2, i); i++) {}
+	i--;
+	return i;
+}
+
+void writeHeader(uint64_t* codewords, char* uniqueSymbs, int pairs, int zeros, std::ofstream* target)
+{
+	target->put(pairs);
+	target->put(zeros);
+	for (uint16_t i = 0; i < pairs; i++)
+	{
+		*(target) << uniqueSymbs[i] << codewords[i];
+	}
+}
+
+int writeByBit(uint64_t* codewords, char* uniqueSymbs, std::ifstream* content, std::ofstream* target)
+{
+	int marker1 = 0, marker2 = 0;
+	uint8_t buffer = 0;
+	char symb;
+	uint64_t tempCode = 0;
+	int signBits = 0;
+	//reset stream
+	content->clear();
+	content->seekg(0, ios_base::beg);
+	for (uint16_t i = 0; !content->eof(); i++)
+	{
+		content->read(&symb, sizeof(char));
+		int j = 0;
+		while (symb != uniqueSymbs[j])
+			j++;
+		tempCode = codewords[j];
+
+		while (marker1 < 8)
+		{
+			if (marker2 > binaryLen(tempCode))
+			{
+				marker2 = 0;
+				break;
+			}
+			if (getBit(tempCode, marker2))
+			{
+				buffer++;
+				buffer <<= 1;
+				signBits++;
+			}
+			else
+			{
+				buffer <<= 1;
+				signBits++;
+			}
+			marker2++;
+			marker1++;
+		}
+		if (marker1 == 8)
+		{
+			marker1 = 0;
+			//write to file
+			target->put(buffer);
+			buffer = 0;
+			signBits = 0;
+		}
+		symb = 0;
+	}
+	if (buffer != 0)
+	{
+		buffer <<= 8 - signBits;
+		target->put(buffer);
+		buffer = 0;
+		//end of all
+		return 8 - signBits;
+	}
+	else
+		return 0;
+}
