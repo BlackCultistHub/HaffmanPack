@@ -152,7 +152,6 @@ void Tree::addCodeSymb(Node* target, char symb)
 		addCodeSymb(target->getL(), symb);
 		addCodeSymb(target->getR(), symb);
 	}
-
 }
 
 int Tree::getLessChanceNode(Node*** nodesfield, Node** node2, Node** node1)
@@ -255,9 +254,9 @@ int writeByBit(uint64_t* codewords, char* uniqueSymbs, std::ifstream* content, s
 
 int main()
 {
-	ifstream file("C:\\6.dvi", ios::binary);
-	ofstream fileOut("E:\\res.txt", ios::binary);
-	ofstream fileHeader("E:\\resH.txt", ios::binary);
+	ifstream file("C:\\test.txt", ios::binary);
+	ofstream fileOut("E:\\res.bin", ios::binary);
+	ofstream fileHeader("E:\\resH.bin", ios::binary);
 	string* pcontent = new string;
 	string& content = *pcontent;
 	char byte;
@@ -347,7 +346,7 @@ bool getBit(uint64_t code, int pointer)
 	//int length = 0;
 	//length = binaryLen(code) - 1;
 	uint64_t pointerBit = 0, temp = 0;
-	pointerBit = pow(2, pointer);
+	pointerBit = pow(2, binaryLen(code)-pointer);
 	temp = code ^ pointerBit;
 	if (temp < code)
 		return true;
@@ -367,15 +366,29 @@ void writeHeader(uint64_t* codewords, char* uniqueSymbs, int pairs, int zeros, s
 {
 	target->put(pairs);
 	target->put(zeros);
+	char buffer = 0;
+	uint64_t tempCode = 0;
 	for (uint16_t i = 0; i < pairs; i++)
 	{
-		*(target) << uniqueSymbs[i] << codewords[i];
+		target->put(uniqueSymbs[i]);
+		for (uint16_t j = 0; j < 8; j++)
+		{
+			tempCode = codewords[i];
+			tempCode <<= j * 8;
+			tempCode >>= 7 * 8;
+			buffer = (char)tempCode;
+			target->put(buffer);
+		}
 	}
+	/*for (uint16_t i = 0; i < pairs; i++)
+	{
+		*(target) << uniqueSymbs[i] << codewords[i];
+	}*/
 }
 
 int writeByBit(uint64_t* codewords, char* uniqueSymbs, std::ifstream* content, std::ofstream* target)
 {
-	int marker1 = 0, marker2 = 0;
+	int marker1 = 0, marker2 = 1;
 	uint8_t buffer = 0;
 	char symb;
 	uint64_t tempCode = 0;
@@ -385,23 +398,26 @@ int writeByBit(uint64_t* codewords, char* uniqueSymbs, std::ifstream* content, s
 	content->seekg(0, ios_base::beg);
 	for (uint16_t i = 0; !content->eof(); i++)
 	{
-		content->read(&symb, sizeof(char));
-		int j = 0;
-		while (symb != uniqueSymbs[j])
-			j++;
-		tempCode = codewords[j];
-
+		if (marker2 == 1)
+		{
+			symb = 0;
+			content->read(&symb, sizeof(char));
+			int j = 0;
+			while (symb != uniqueSymbs[j])
+				j++;
+			tempCode = codewords[j];
+		}
 		while (marker1 < 8)
 		{
 			if (marker2 > binaryLen(tempCode))
 			{
-				marker2 = 0;
+				marker2 = 1;
 				break;
 			}
 			if (getBit(tempCode, marker2))
 			{
-				buffer++;
 				buffer <<= 1;
+				buffer++;
 				signBits++;
 			}
 			else
@@ -420,7 +436,14 @@ int writeByBit(uint64_t* codewords, char* uniqueSymbs, std::ifstream* content, s
 			buffer = 0;
 			signBits = 0;
 		}
-		symb = 0;
+		else	// checking if next is EOF after last read symb in content
+		{
+			content->get();
+			if (content->eof())
+				break;
+			else
+				content->seekg(-1, ios::cur);
+		}
 	}
 	if (buffer != 0)
 	{
