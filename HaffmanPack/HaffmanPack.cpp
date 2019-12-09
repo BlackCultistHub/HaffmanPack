@@ -322,6 +322,9 @@ int main()
 	int zeros = 0;
 	zeros = writeByBit(codes, USymb, &file, &fileOut);
 	//call write header
+	//cout << count << endl;
+	//cout << count - 1 << endl;
+	//int temp = count - 1;
 	writeHeader(codes, USymb, count-1, zeros, &fileHeader);
 	file.close();
 	fileOut.close();
@@ -366,8 +369,8 @@ int binaryLen(uint64_t msg)
 
 void writeHeader(uint64_t* codewords, char* uniqueSymbs, int pairs, int zeros, std::ofstream* target)
 {
-	target->put(pairs);
-	target->put(zeros);
+	target->put((char)pairs);
+	target->put((char)zeros);
 	char buffer = 0;
 	uint64_t tempCode = 0;
 	for (uint64_t i = 0; i < pairs+1; i++) //as we write pairs-1 because of 256
