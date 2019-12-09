@@ -1,4 +1,4 @@
-﻿//TODO list
+//TODO list
 //1) получить последовательность символов из входного файла DONE
 //2)записать таблицу соответствий DONE
 //3) побитно DONE
@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
+#include <math.h>
 
 using namespace std;
 
@@ -60,7 +61,7 @@ public:
 
 	int getNodeInd(Node** nodes, Node* target)
 	{
-		for (int i = 0; i < this->getNodeCounter(); i++)
+		for (uint64_t i = 0; i < this->getNodeCounter(); i++)
 			if (nodes[i] == target)
 				return i;
 	}
@@ -92,7 +93,7 @@ void Tree::genTree()
 {
 	//mem 4 nodes
 	nodes = (Node**)malloc(sizeof(Node*) * _uniqueSymbAm);
-	for (uint16_t i = 0; i < _uniqueSymbAm; i++)
+	for (uint64_t i = 0; i < _uniqueSymbAm; i++)
 		nodes[i] = new Node(_chances[i], NULL, NULL, NULL, _uniqueSymb + i);
 	Node* n1, * n2;
 	while (!checkGenSuc(&nodes))
@@ -121,7 +122,7 @@ void Tree::genTree()
 void Tree::deGenTree()
 {
 	_codes = new uint64_t[_uniqueSymbAm];
-	for (int i = 0; i < _uniqueSymbAm; i++)
+	for (uint64_t i = 0; i < _uniqueSymbAm; i++)
 		_codes[i] = 0;
 	addCodeSymb(_root, 1);
 	steps(_root);
@@ -161,7 +162,7 @@ int Tree::getLessChanceNode(Node*** nodesfield, Node** node2, Node** node1)
 	int numb1 = 0, numb2 = 0;
 	Node* min1 = NULL;
 	Node* min2 = NULL;
-	for (uint16_t i = 0; i < this->getNodeCounter(); i++)
+	for (uint64_t i = 0; i < this->getNodeCounter(); i++)
 	{
 		if ((*nodesfield)[i]->getParent() == NULL)
 		{
@@ -169,7 +170,7 @@ int Tree::getLessChanceNode(Node*** nodesfield, Node** node2, Node** node1)
 			numb1 = i;
 		}
 	}
-	for (uint16_t i = 0; i < this->getNodeCounter(); i++)
+	for (uint64_t i = 0; i < this->getNodeCounter(); i++)
 	{
 		if (((*nodesfield)[i]->getParent() == NULL) && (min1 != (*nodesfield)[i]))
 		{
@@ -186,7 +187,7 @@ int Tree::getLessChanceNode(Node*** nodesfield, Node** node2, Node** node1)
 		min1 = min2;
 		min2 = tBuff;
 	}
-	for (uint16_t i = 0; i < this->getNodeCounter(); i++)
+	for (uint64_t i = 0; i < this->getNodeCounter(); i++)
 	{
 		//this->coutNodeInfo((*nodesfield)[i]);
 		if ((*nodesfield)[i]->getParent() == NULL)
@@ -215,7 +216,7 @@ int Tree::getLessChanceNode(Node*** nodesfield, Node** node2, Node** node1)
 void Tree::showTree(Node*** nodes, int nodesAm)
 {
 	cout << "Begin showing tree" << endl;
-	for (int i = 0; i < nodesAm; i++)
+	for (uint64_t i = 0; i < nodesAm; i++)
 	{
 		//if (((*nodes)[i]->getSymb() != NULL) && ((*nodes)[i]->getParent() != NULL))
 			//cout << "Node number " << i << " : " << (*(*nodes)[i]->getSymb()) << endl;
@@ -229,7 +230,7 @@ bool Tree::checkGenSuc(Node*** nodesfield)
 {
 	int counter = 0;
 	//int until = sizeof((*(*nodesfield)))/sizeof(Node*); //-> counter
-	for (uint16_t i = 0; i < this->getNodeCounter(); i++)
+	for (uint64_t i = 0; i < this->getNodeCounter(); i++)
 		if ((*nodesfield)[i]->getParent() == NULL)
 			counter++;
 	return counter == 2 ? true : false;
@@ -257,22 +258,23 @@ int main()
 	ifstream file("C:\\test.txt", ios::binary);
 	ofstream fileOut("E:\\res.bin", ios::binary);
 	ofstream fileHeader("E:\\resH.bin", ios::binary);
-	string* pcontent = new string;
-	string& content = *pcontent;
+	//string* pcontent = new string;
+	//string& content = *pcontent;
 	char byte;
 	unsigned char ubyte;
 	int palette[256];
 	int count = 0;
 	for (uint16_t i = 0; i < sizeof(palette) / sizeof(int); i++)
 		palette[i] = 0;
-	for (uint16_t i = 0; !file.eof(); i++)
+	for (uint64_t i = 0; !file.eof(); i++)
 	{
 		file.read(&byte, sizeof(char));
 		ubyte = byte;
-		content += ubyte;
+		//content += ubyte;
 		palette[ubyte]++;
+    cout << i << endl;
 	}
-	cout << content << endl;
+	//cout << content << endl;
 	for (uint16_t i = 0; i < 256; i++)
 	{
 		if (palette[i] != 0)
@@ -284,7 +286,7 @@ int main()
 	int summ = 0;
 	for (int i = 0; i < 256; i++)
 		summ += palette[i];
-	cout << "chars in file: " << content.length() << endl;
+	//cout << "chars in file: " << content.length() << endl;
 	cout << "cells used: " << count << endl;
 	cout << "used cells summ: " << summ << endl;
 
@@ -310,9 +312,9 @@ int main()
 	huff.genTree();
 	huff.deGenTree();
 	uint64_t* codes = huff.getCodes();
-	cout << "\t-------------------------------\n"<<
+	cout << "\t-------------------------------\n" <<
 		    "\t|        [Codes table]        |\n" << 
-		    "\t|_____________________________|"<< endl;
+		    "\t|_____________________________|" << endl;
 	for (uint16_t i = 0; i < count; i++)
 		printf("\t| Symbol | %4d | Code | %4d |\n", (int)USymb[i], codes[i]);
 	cout << "\t-------------------------------" << endl;
@@ -320,7 +322,7 @@ int main()
 	int zeros = 0;
 	zeros = writeByBit(codes, USymb, &file, &fileOut);
 	//call write header
-	writeHeader(codes, USymb, count, zeros, &fileHeader);
+	writeHeader(codes, USymb, count-1, zeros, &fileHeader);
 	file.close();
 	fileOut.close();
 	fileHeader.close();
@@ -368,10 +370,10 @@ void writeHeader(uint64_t* codewords, char* uniqueSymbs, int pairs, int zeros, s
 	target->put(zeros);
 	char buffer = 0;
 	uint64_t tempCode = 0;
-	for (uint16_t i = 0; i < pairs; i++)
+	for (uint64_t i = 0; i < pairs+1; i++) //as we write pairs-1 because of 256
 	{
 		target->put(uniqueSymbs[i]);
-		for (uint16_t j = 0; j < 8; j++)
+		for (uint64_t j = 0; j < 8; j++)
 		{
 			tempCode = codewords[i];
 			tempCode <<= j * 8;
@@ -396,7 +398,7 @@ int writeByBit(uint64_t* codewords, char* uniqueSymbs, std::ifstream* content, s
 	//reset stream
 	content->clear();
 	content->seekg(0, ios_base::beg);
-	for (uint16_t i = 0; !content->eof(); i++)
+	for (uint64_t i = 0; !content->eof(); i++)
 	{
 		if (marker2 == 1)
 		{
