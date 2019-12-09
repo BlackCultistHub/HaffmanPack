@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
+#include <sys/stat.h>
 
 using namespace std;
 
@@ -12,14 +13,28 @@ void writeSymbinFile(uint64_t* codes, char* symbs, int limit, uint64_t codeword,
 
 int main()
 {
-  ifstream fileContent("E:\\res.bin", ios::binary);
-  ifstream fileHeader("E:\\resH.bin", ios::binary);
-  ofstream fileD("E:\\decode.txt", ios::binary);
-  unsigned char zeros = 0, pairs = 0, buffer = 0;
+
+  ifstream fileContent("E:\\res.bin", ios_base::binary);
+  /*int i = 0;
+  while (!fileContent.eof())
+  {
+	  printf("i=%d\n", i);
+	  fileContent.get();
+	  i++;
+  }
+  cout << "got end at" << i << endl;
+  struct stat fi;
+  stat("E:\\res.bin", &fi);
+  printf("file size: %d", fi.st_size);*/
+  ifstream fileHeader("E:\\resH.bin", ios_base::binary); 
+  ofstream fileD("E:\\decode.txt", ios_base::binary);
+  unsigned char zeros = 0, tpairs = 0, buffer = 0;
   uint64_t codeBuff = 0;
   char temp = 0;
+  unsigned int pairs = 0;
   fileHeader.read(&temp, sizeof(char)); // head of head
-  pairs = temp+1;
+  tpairs = temp;
+  pairs = tpairs+1;
   fileHeader.read(&temp, sizeof(char)); //
   zeros = temp;
   char* symbs = (char*)malloc(pairs * sizeof(char));
@@ -45,7 +60,7 @@ int main()
     }
     cout << "Symb: " << (int)symbs[i] << " Code: " << codes[i] << endl;
   }
-  cout << "Decoded:\nPairs: " << (int)pairs << " Zeros: " << (int)zeros << endl;
+  cout << "Decoded:\nPairs: " << pairs << " Zeros: " << (int)zeros << endl;
   cout << "Read:" << endl;
   for (uint16_t i = 0; i < pairs; i++)
     cout << "Symb: " << (int)symbs[i] << " Code: " << codes[i] << endl;
