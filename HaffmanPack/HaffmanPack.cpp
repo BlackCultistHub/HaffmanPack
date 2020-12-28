@@ -1,10 +1,3 @@
-//TODO list
-//1) получить последовательность символов из входного файла DONE
-//2)записать таблицу соответствий DONE
-//3) побитно DONE
-//4) сделать запись заголовка [Х]в другой файл [О]в тот же файл [О]по выбору DONE
-//5) сделать декодер 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -255,9 +248,9 @@ int writeByBit(uint64_t* codewords, char* uniqueSymbs, std::ifstream* content, s
 
 int main()
 {
-	ifstream file("C:\\test.txt", ios::binary);
-	ofstream fileOut("E:\\res.bin", ios::binary);
-	ofstream fileHeader("E:\\resH.bin", ios::binary);
+	ifstream file("test.txt", ios::binary);
+	ofstream fileOut("res.bin", ios::binary);
+	ofstream fileHeader("resH.bin", ios::binary);
 	//string* pcontent = new string;
 	//string& content = *pcontent;
 	char byte;
